@@ -91,9 +91,9 @@ const BookingCalendar = () => {
   return (
     <Card className="w-[90%] max-w-[500px] mx-auto mt-8">
       <CardHeader>
-        <CardTitle>Agende sua Reunião</CardTitle>
+        <CardTitle>Escolha o dia e horário da sua reunião</CardTitle>
         <CardDescription>
-          Escolha uma data e horário disponível para nossa reunião
+          Selecione a data e horário que melhor se adequa à sua disponibilidade
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
