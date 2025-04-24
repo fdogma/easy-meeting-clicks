@@ -17,6 +17,7 @@ const Logo: React.FC<LogoProps> = ({
       src="/lovable-uploads/78a03c35-39d9-4b9a-8b7f-6ad969c59756.png" 
       alt="Felipe Diogo Advogados Logo" 
       className={`object-contain ${className}`}
+      style={{ background: 'transparent' }}
       width={width}
       height={height}
     />
