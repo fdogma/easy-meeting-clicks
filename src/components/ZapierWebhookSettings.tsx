@@ -77,7 +77,7 @@ export const ZapierWebhookSettings = ({
     setTestLoading(true);
     console.log("Testando webhook:", webhookUrl);
     
-    // Criar dados de teste similares ao evento real
+    // Criar dados de teste com formato compatível com Google Calendar
     const testDate = new Date();
     const startDateTime = testDate.toISOString();
     const endDateTime = new Date(testDate.getTime() + 60 * 60 * 1000).toISOString();
@@ -88,17 +88,26 @@ export const ZapierWebhookSettings = ({
         headers: { "Content-Type": "application/json" },
         mode: "no-cors", // Necessário para evitar erros de CORS
         body: JSON.stringify({
+          // Dados de teste formatados exatamente como o Google Calendar espera
+          name: "Usuário de Teste",
+          title: "Reunião de Teste", 
+          start_datetime: startDateTime,
+          end_datetime: endDateTime,
+          location: "",
+          description: "Este é um teste de integração com o Zapier",
+          
+          // Campos de backup em diferentes formatos para maior compatibilidade
+          summary: "Reunião de Teste",
+          start: startDateTime,
+          end: endDateTime,
+          
+          // Campos adicionais para debug
           test: true,
           timestamp: new Date().toISOString(),
           message: "Webhook de teste disparado via app",
-          // Campos formatados para calendário Google/Notion/etc
-          name: "Usuário de Teste",
-          date: "01/01/2025",
-          time: "10:00",
-          start_time: startDateTime,
-          end_time: endDateTime,
-          summary: "Reunião de Teste",
-          description: "Este é um teste de integração com o Zapier"
+          display_date: "01/01/2025",
+          display_time: "10:00",
+          client_name: "Usuário de Teste"
         }),
       });
       

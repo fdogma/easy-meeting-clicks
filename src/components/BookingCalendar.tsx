@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { format, addHours, parse } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
@@ -121,22 +120,26 @@ const BookingCalendar = () => {
     // Formatar data e hora para exibição mais amigável
     const formattedDate = format(date, "dd/MM/yyyy");
     
+    // Dados formatados especificamente para compatibilidade com Google Calendar via Zapier
     const bookingData = {
-      name,
-      date: formattedDate,
-      time: selectedTime,
-      email: "", // Pode adicionar mais campos no futuro
-      phone: "", // Pode adicionar mais campos no futuro
-      message: `Agendamento para ${formattedDate} às ${selectedTime}`,
-      // Campos formatados para calendário Google/Notion/etc
-      start_time: startDateTime,
-      end_time: endDateTime,
-      // Formato para exibição
+      // Campos para Google Calendar via Zapier - nomes exatos que o Zapier espera
+      name: name,
+      title: `Reunião com ${name}`,
+      start_datetime: startDateTime,
+      end_datetime: endDateTime,
+      location: "",
+      description: `Agendamento realizado pelo site para ${formattedDate} às ${selectedTime}`,
+      
+      // Campos de backup em diferentes formatos para maior compatibilidade
+      summary: `Reunião com ${name}`,
+      start: startDateTime,
+      end: endDateTime,
+      
+      // Campos adicionais para exibição ou uso futuro
       display_date: formattedDate,
       display_time: selectedTime,
-      // Para compatibilidade com plataformas de calendário
-      summary: `Reunião com ${name}`,
-      description: `Agendamento realizado pelo site para ${formattedDate} às ${selectedTime}`
+      client_name: name,
+      message: `Agendamento para ${formattedDate} às ${selectedTime}`
     };
 
     try {
@@ -150,7 +153,7 @@ const BookingCalendar = () => {
       const response = await fetch(webhookToUse, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        mode: "no-cors", // Necessário para evitar erros de CORS com o Zapier
+        mode: "no-cors", // Necessário para evitar erros de CORS
         body: JSON.stringify(bookingData),
       });
 
