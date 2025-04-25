@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
@@ -13,15 +13,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import BookingSteps from "./BookingSteps";
+import { DEFAULT_TIME_CONFIG, generateTimeSlots } from "../utils/timeConfig";
 
-const AVAILABLE_TIMES = [
-  "09:00",
-  "10:00",
-  "11:00",
-  "14:00",
-  "15:00",
-  "16:00",
-];
+interface Booking {
+  date: string;
+  time: string;
+}
 
 const BookingCalendar = () => {
   const [date, setDate] = useState<Date>();
@@ -29,9 +27,33 @@ const BookingCalendar = () => {
   const [name, setName] = useState("");
   const [step, setStep] = useState(1);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [bookings, setBookings] = useState<Booking[]>([]);
+  const [availableTimes, setAvailableTimes] = useState<string[]>([]);
+
+  // Gerar horários disponíveis baseados na configuração
+  useEffect(() => {
+    const times = generateTimeSlots(DEFAULT_TIME_CONFIG);
+    setAvailableTimes(times);
+  }, []);
+
+  // Atualizar horários disponíveis quando uma data for selecionada
+  useEffect(() => {
+    if (date) {
+      const dateStr = format(date, "yyyy-MM-dd");
+      const bookedTimes = bookings
+        .filter((booking) => booking.date === dateStr)
+        .map((booking) => booking.time);
+      
+      const times = generateTimeSlots(DEFAULT_TIME_CONFIG)
+        .filter((time) => !bookedTimes.includes(time));
+      
+      setAvailableTimes(times);
+    }
+  }, [date, bookings]);
 
   const handleDateSelect = (newDate: Date | undefined) => {
     setDate(newDate);
+    setSelectedTime(undefined);
     setStep(2);
   };
 
@@ -67,6 +89,15 @@ const BookingCalendar = () => {
         }),
       });
 
+      // Adicionar o novo agendamento à lista
+      setBookings([
+        ...bookings,
+        {
+          date: format(date, "yyyy-MM-dd"),
+          time: selectedTime,
+        },
+      ]);
+
       toast({
         title: "Agendamento realizado!",
         description: "Você receberá uma confirmação em breve.",
@@ -93,10 +124,12 @@ const BookingCalendar = () => {
       <CardHeader>
         <CardTitle>Escolha o dia e horário da sua reunião</CardTitle>
         <CardDescription>
-          Selecione a data e horário que melhor se adequa à sua disponibilidade
+          Siga os passos abaixo para agendar sua reunião
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        <BookingSteps currentStep={step} />
+
         {step >= 1 && (
           <div className="flex flex-col items-center space-y-4">
             <Calendar
@@ -113,7 +146,7 @@ const BookingCalendar = () => {
           <div className="space-y-4">
             <h3 className="font-medium">Horários Disponíveis</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-              {AVAILABLE_TIMES.map((time) => (
+              {availableTimes.map((time) => (
                 <Button
                   key={time}
                   variant={selectedTime === time ? "default" : "outline"}
