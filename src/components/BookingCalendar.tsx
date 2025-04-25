@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from 'react';
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { toast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   Card,
   CardContent,
@@ -23,6 +22,7 @@ import {
 } from "@/components/ui/form";
 import BookingSteps from "./BookingSteps";
 import { DEFAULT_TIME_CONFIG, generateTimeSlots } from "../utils/timeConfig";
+import { DEFAULT_WEBHOOK_URL } from './ZapierWebhookSettings';
 
 interface Booking {
   date: string;
@@ -31,6 +31,7 @@ interface Booking {
 }
 
 const BookingCalendar = () => {
+  const { toast } = useToast();
   const [date, setDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>();
   const [name, setName] = useState("");
@@ -39,9 +40,9 @@ const BookingCalendar = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   
-  // Recuperar webhook do localStorage ou usar um valor padrão vazio
+  // Usar o webhook padrão do Zapier fornecido
   const [webhookUrl, setWebhookUrl] = useState(() => {
-    return localStorage.getItem('zapierWebhookUrl') || '';
+    return localStorage.getItem('zapierWebhookUrl') || DEFAULT_WEBHOOK_URL;
   });
   
   // Modo de administrador para configurar o webhook
@@ -113,19 +114,14 @@ const BookingCalendar = () => {
     };
 
     try {
-      // Verificar se o webhook foi configurado
-      if (!webhookUrl) {
-        toast({
-          title: "Erro na configuração",
-          description: "O webhook do Zapier não foi configurado. Por favor, configure antes de continuar.",
-          variant: "destructive",
-        });
-        setIsSubmitting(false);
-        return;
-      }
-
+      // Usar a URL do webhook fornecida
+      const webhookToUse = webhookUrl || DEFAULT_WEBHOOK_URL;
+      
+      console.log("Enviando dados para webhook:", webhookToUse);
+      console.log("Dados do agendamento:", bookingData);
+      
       // Enviar dados para o Zapier
-      await fetch(webhookUrl, {
+      const response = await fetch(webhookToUse, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         mode: "no-cors", // Necessário para evitar erros de CORS com o Zapier

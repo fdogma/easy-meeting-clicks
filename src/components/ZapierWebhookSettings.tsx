@@ -49,15 +49,20 @@ export const ZapierWebhookSettings = ({
   });
 
   useEffect(() => {
-    form.reset({ webhookUrl: initialValue });
+    // Garantir que o formulário use o valor inicial correto
+    if (initialValue) {
+      form.reset({ webhookUrl: initialValue });
+    }
   }, [initialValue, form]);
 
   const onSubmit = ({ webhookUrl }: z.infer<typeof formSchema>) => {
+    // Salvar no localStorage para persistir a URL
+    localStorage.setItem('zapierWebhookUrl', webhookUrl);
     onSave(webhookUrl);
     toast({ title: "Webhook configurado", description: "URL salva!" });
   };
 
-  /** Dispara teste */
+  /** Dispara teste para o Zapier */
   const handleTestWebhook = async () => {
     const webhookUrl = form.getValues("webhookUrl");
     if (!webhookUrl) {
@@ -70,22 +75,25 @@ export const ZapierWebhookSettings = ({
     }
 
     setTestLoading(true);
+    console.log("Testando webhook:", webhookUrl);
+
     try {
       const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        mode: "no-cors", // Necessário para evitar erros de CORS
         body: JSON.stringify({
           test: true,
           timestamp: new Date().toISOString(),
           message: "Webhook de teste disparado via app",
         }),
       });
-      if (!res.ok && res.type !== "opaque") {
-        throw new Error(`Status ${res.status}`);
-      }
+      
+      // Como estamos usando mode: "no-cors", não podemos verificar o status da resposta
+      // Então vamos apenas mostrar uma mensagem de sucesso
       toast({
         title: "Teste enviado",
-        description: "Verifique o ‘Task History’ no Zapier.",
+        description: "Verifique o 'Task History' no Zapier para confirmar.",
       });
     } catch (err: any) {
       console.error("Erro ao testar webhook:", err);
@@ -120,7 +128,7 @@ export const ZapierWebhookSettings = ({
                   <Input placeholder={DEFAULT_WEBHOOK_URL} {...field} />
                 </FormControl>
                 <FormDescription>
-                  Cole aqui a URL fornecida pelo Zapier (gatilho “Catch Hook”).
+                  URL do Zapier para integração (já configurada para você).
                 </FormDescription>
                 <FormMessage />
               </FormItem>
