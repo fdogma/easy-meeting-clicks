@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,28 +16,23 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useToast } from "@/hooks/use-toast";
 
-/**
- * URL fixa do Webhook Zapier fornecido pelo cliente.
- * Altere aqui se precisar atualizar futuramente.
- */
+/** URL fixa do Webhook Zapier fornecida pelo cliente */
 export const DEFAULT_WEBHOOK_URL =
   "https://hooks.zapier.com/hooks/catch/22657275/2p3dg0d/";
 
-// Validação do formulário (exige URL válida e que pertença ao domínio Zapier)
+// Validação – exige URL válida do domínio Zapier
 const formSchema = z.object({
   webhookUrl: z
     .string()
     .url({ message: "Informe uma URL válida (https://…)" })
     .regex(
       /^https:\/\/hooks\.zapier\.com\/hooks\/catch\/[A-Za-z0-9/_-]+\/?$/,
-      "A URL precisa ser um Webhook Zapier"
+      "A URL precisa ser um Webhook Zapier",
     ),
 });
 
 type ZapierWebhookSettingsProps = {
-  /** Função chamada após salvar */
   onSave: (url: string) => void;
-  /** Valor inicial opcional (padrão = DEFAULT_WEBHOOK_URL) */
   initialValue?: string;
 };
 
@@ -56,19 +52,14 @@ export const ZapierWebhookSettings = ({
     form.reset({ webhookUrl: initialValue });
   }, [initialValue, form]);
 
-  /** Salva a configuração do webhook */
   const onSubmit = ({ webhookUrl }: z.infer<typeof formSchema>) => {
     onSave(webhookUrl);
-    toast({
-      title: "Webhook configurado",
-      description: "URL salva com sucesso!",
-    });
+    toast({ title: "Webhook configurado", description: "URL salva!" });
   };
 
-  /** Envia um POST de teste para o Zapier */
+  /** Dispara teste */
   const handleTestWebhook = async () => {
     const webhookUrl = form.getValues("webhookUrl");
-
     if (!webhookUrl) {
       toast({
         title: "Erro",
@@ -80,26 +71,27 @@ export const ZapierWebhookSettings = ({
 
     setTestLoading(true);
     try {
-      await fetch(webhookUrl, {
+      const res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        mode: "no-cors", // Zapier ignora CORS e não devolve corpo
         body: JSON.stringify({
           test: true,
           timestamp: new Date().toISOString(),
-          message: "Webhook de teste disparado",
+          message: "Webhook de teste disparado via app",
         }),
       });
-
+      if (!res.ok && res.type !== "opaque") {
+        throw new Error(`Status ${res.status}`);
+      }
       toast({
         title: "Teste enviado",
-        description: "Verifique em Task History se o Zap recebeu o webhook.",
+        description: "Verifique o ‘Task History’ no Zapier.",
       });
-    } catch (err) {
+    } catch (err: any) {
       console.error("Erro ao testar webhook:", err);
       toast({
         title: "Falha no teste",
-        description: "Não foi possível disparar o webhook. Revise a URL e tente novamente.",
+        description: `Não foi possível disparar o webhook. ${err.message}`,
         variant: "destructive",
       });
     } finally {
@@ -109,7 +101,6 @@ export const ZapierWebhookSettings = ({
 
   return (
     <div className="space-y-6 p-4 bg-white rounded-lg shadow">
-      {/* Cabeçalho */}
       <div className="space-y-2">
         <h2 className="text-2xl font-bold">Configuração do Webhook do Zapier</h2>
         <p className="text-muted-foreground">
@@ -117,7 +108,6 @@ export const ZapierWebhookSettings = ({
         </p>
       </div>
 
-      {/* Formulário */}
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
           <FormField
@@ -127,20 +117,16 @@ export const ZapierWebhookSettings = ({
               <FormItem>
                 <FormLabel>URL do Webhook</FormLabel>
                 <FormControl>
-                  <Input
-                    placeholder={DEFAULT_WEBHOOK_URL}
-                    {...field}
-                  />
+                  <Input placeholder={DEFAULT_WEBHOOK_URL} {...field} />
                 </FormControl>
                 <FormDescription>
-                  Cole aqui a URL gerada pelo Zapier (gatilho “Catch Hook”).
+                  Cole aqui a URL fornecida pelo Zapier (gatilho “Catch Hook”).
                 </FormDescription>
                 <FormMessage />
               </FormItem>
             )}
           />
 
-          {/* Botões */}
           <div className="flex flex-col md:flex-row gap-4 pt-2">
             <Button
               type="button"
