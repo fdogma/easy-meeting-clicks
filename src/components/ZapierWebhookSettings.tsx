@@ -59,7 +59,7 @@ export const ZapierWebhookSettings = ({
   };
 
   const handleTestWebhook = async () => {
-    const webhookUrl = form.getValues("webhookUrl");
+    const webhookUrl = form.getValues("https://hooks.zapier.com/hooks/catch/22657275/2p3dg0d/");
     
     if (!webhookUrl) {
       toast({
