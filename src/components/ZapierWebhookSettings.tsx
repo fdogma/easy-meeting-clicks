@@ -18,7 +18,7 @@ import { useToast } from "@/hooks/use-toast";
 
 /** URL fixa do Webhook Zapier fornecida pelo cliente */
 export const DEFAULT_WEBHOOK_URL =
-  "https://hooks.zapier.com/hooks/catch/22657275/2p3dg0d/";
+  "https://hooks.zapier.com/hooks/catch/22657275/2p3n7tf/";
 
 // Validação – exige URL válida do domínio Zapier
 const formSchema = z.object({

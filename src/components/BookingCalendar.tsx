@@ -40,21 +40,17 @@ const BookingCalendar = () => {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
   
-  // Usar o webhook padrão do Zapier fornecido
   const [webhookUrl, setWebhookUrl] = useState(() => {
     return localStorage.getItem('zapierWebhookUrl') || DEFAULT_WEBHOOK_URL;
   });
   
-  // Modo de administrador para configurar o webhook
   const [isAdminMode, setIsAdminMode] = useState(false);
 
-  // Gerar horários disponíveis baseados na configuração
   useEffect(() => {
     const times = generateTimeSlots(DEFAULT_TIME_CONFIG);
     setAvailableTimes(times);
   }, []);
 
-  // Atualizar horários disponíveis quando uma data for selecionada
   useEffect(() => {
     if (date) {
       const dateStr = format(date, "yyyy-MM-dd");
@@ -80,7 +76,6 @@ const BookingCalendar = () => {
     setStep(3);
   };
 
-  // Salvar webhook URL no localStorage
   const handleSaveWebhook = () => {
     localStorage.setItem('zapierWebhookUrl', webhookUrl);
     toast({
@@ -90,14 +85,10 @@ const BookingCalendar = () => {
     setIsAdminMode(false);
   };
 
-  // Função auxiliar para formatar os dados para o Zapier
   const formatDateTimeForZapier = (date: Date, timeString: string) => {
-    // Cria um objeto de data completo com data e hora
     const [hours, minutes] = timeString.split(':').map(Number);
     const dateTime = new Date(date);
     dateTime.setHours(hours, minutes, 0, 0);
-    
-    // Formata como ISO String que o Google Calendar pode entender
     return dateTime.toISOString();
   };
 
@@ -113,16 +104,12 @@ const BookingCalendar = () => {
 
     setIsSubmitting(true);
     
-    // Calcular timestamps em formato ISO para início e fim (duração de 1 hora)
     const startDateTime = formatDateTimeForZapier(date, selectedTime);
     const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
     
-    // Formatar data e hora para exibição mais amigável
     const formattedDate = format(date, "dd/MM/yyyy");
     
-    // Dados formatados especificamente para compatibilidade com Google Calendar via Zapier
     const bookingData = {
-      // Campos para Google Calendar via Zapier - nomes exatos que o Zapier espera
       name: name,
       title: `Reunião com ${name}`,
       start_datetime: startDateTime,
@@ -130,12 +117,10 @@ const BookingCalendar = () => {
       location: "",
       description: `Agendamento realizado pelo site para ${formattedDate} às ${selectedTime}`,
       
-      // Campos de backup em diferentes formatos para maior compatibilidade
       summary: `Reunião com ${name}`,
       start: startDateTime,
       end: endDateTime,
       
-      // Campos adicionais para exibição ou uso futuro
       display_date: formattedDate,
       display_time: selectedTime,
       client_name: name,
@@ -143,21 +128,18 @@ const BookingCalendar = () => {
     };
 
     try {
-      // Usar a URL do webhook fornecida
       const webhookToUse = webhookUrl || DEFAULT_WEBHOOK_URL;
       
       console.log("Enviando dados para webhook:", webhookToUse);
       console.log("Dados do agendamento:", bookingData);
       
-      // Enviar dados para o Zapier
       const response = await fetch(webhookToUse, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        mode: "no-cors", // Necessário para evitar erros de CORS
+        mode: "no-cors",
         body: JSON.stringify(bookingData),
       });
 
-      // Adicionar o novo agendamento à lista local
       const newBooking = {
         date: format(date, "yyyy-MM-dd"),
         time: selectedTime,
@@ -171,7 +153,6 @@ const BookingCalendar = () => {
         description: "Você receberá uma confirmação em breve.",
       });
       
-      // Reset form
       setDate(undefined);
       setSelectedTime(undefined);
       setName("");
@@ -188,7 +169,6 @@ const BookingCalendar = () => {
     }
   };
 
-  // Botão secreto: Pressione Alt+Z para entrar no modo admin
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.altKey && e.key === 'z') {
