@@ -76,7 +76,12 @@ export const ZapierWebhookSettings = ({
 
     setTestLoading(true);
     console.log("Testando webhook:", webhookUrl);
-
+    
+    // Criar dados de teste similares ao evento real
+    const testDate = new Date();
+    const startDateTime = testDate.toISOString();
+    const endDateTime = new Date(testDate.getTime() + 60 * 60 * 1000).toISOString();
+    
     try {
       const res = await fetch(webhookUrl, {
         method: "POST",
@@ -86,6 +91,14 @@ export const ZapierWebhookSettings = ({
           test: true,
           timestamp: new Date().toISOString(),
           message: "Webhook de teste disparado via app",
+          // Campos formatados para calendário Google/Notion/etc
+          name: "Usuário de Teste",
+          date: "01/01/2025",
+          time: "10:00",
+          start_time: startDateTime,
+          end_time: endDateTime,
+          summary: "Reunião de Teste",
+          description: "Este é um teste de integração com o Zapier"
         }),
       });
       

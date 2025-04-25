@@ -1,5 +1,6 @@
+
 import React, { useState, useEffect } from 'react';
-import { format } from "date-fns";
+import { format, addHours, parse } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +91,17 @@ const BookingCalendar = () => {
     setIsAdminMode(false);
   };
 
+  // Função auxiliar para formatar os dados para o Zapier
+  const formatDateTimeForZapier = (date: Date, timeString: string) => {
+    // Cria um objeto de data completo com data e hora
+    const [hours, minutes] = timeString.split(':').map(Number);
+    const dateTime = new Date(date);
+    dateTime.setHours(hours, minutes, 0, 0);
+    
+    // Formata como ISO String que o Google Calendar pode entender
+    return dateTime.toISOString();
+  };
+
   const handleSubmit = async () => {
     if (!date || !selectedTime || !name) {
       toast({
@@ -102,8 +114,13 @@ const BookingCalendar = () => {
 
     setIsSubmitting(true);
     
+    // Calcular timestamps em formato ISO para início e fim (duração de 1 hora)
+    const startDateTime = formatDateTimeForZapier(date, selectedTime);
+    const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
+    
     // Formatar data e hora para exibição mais amigável
     const formattedDate = format(date, "dd/MM/yyyy");
+    
     const bookingData = {
       name,
       date: formattedDate,
@@ -111,6 +128,15 @@ const BookingCalendar = () => {
       email: "", // Pode adicionar mais campos no futuro
       phone: "", // Pode adicionar mais campos no futuro
       message: `Agendamento para ${formattedDate} às ${selectedTime}`,
+      // Campos formatados para calendário Google/Notion/etc
+      start_time: startDateTime,
+      end_time: endDateTime,
+      // Formato para exibição
+      display_date: formattedDate,
+      display_time: selectedTime,
+      // Para compatibilidade com plataformas de calendário
+      summary: `Reunião com ${name}`,
+      description: `Agendamento realizado pelo site para ${formattedDate} às ${selectedTime}`
     };
 
     try {
