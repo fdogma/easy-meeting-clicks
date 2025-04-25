@@ -16,19 +16,26 @@ export const DEFAULT_TIME_CONFIG: TimeConfig = {
 export const generateTimeSlots = (config: TimeConfig) => {
   const slots: string[] = [];
   
-  // Função auxiliar para gerar horários em intervalos de 1 hora
-  const generateHourlySlots = (start: string, end: string) => {
+  // Função auxiliar para gerar horários em intervalos de 30 minutos
+  const generateHalfHourlySlots = (start: string, end: string) => {
     const [startHour, startMinute] = start.split(":").map(Number);
     const [endHour, endMinute] = end.split(":").map(Number);
     
-    for (let hour = startHour; hour <= endHour; hour++) {
-      if (hour === endHour && endMinute === 0) continue;
-      slots.push(`${hour.toString().padStart(2, "0")}:00`);
+    const startTime = startHour * 60 + startMinute;
+    const endTime = endHour * 60 + endMinute;
+    
+    for (let time = startTime; time < endTime; time += 30) {
+      const hour = Math.floor(time / 60);
+      const minute = time % 60;
+      slots.push(
+        `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+      );
     }
   };
 
-  generateHourlySlots(config.startMorning, config.endMorning);
-  generateHourlySlots(config.startAfternoon, config.endAfternoon);
+  generateHalfHourlySlots(config.startMorning, config.endMorning);
+  generateHalfHourlySlots(config.startAfternoon, config.endAfternoon);
   
   return slots;
 };
+
