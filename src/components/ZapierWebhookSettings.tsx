@@ -21,7 +21,7 @@ import { Command, CommandInput } from "@/components/ui/command";
 // Schema for form validation
 const formSchema = z.object({
   webhookUrl: z.string().url({
-    message: "Por favor insira uma URL válida do webhook do Zapier",
+    message: "https://hooks.zapier.com/hooks/catch/22657275/2p3dg0d/",
   }),
 });
 
@@ -64,7 +64,7 @@ export const ZapierWebhookSettings = ({
     if (!webhookUrl) {
       toast({
         title: "Erro",
-        description: "Insira uma URL de webhook antes de testar",
+        description: "https://hooks.zapier.com/hooks/catch/22657275/2p3dg0d/",
         variant: "destructive",
       });
       return;
@@ -120,7 +120,7 @@ export const ZapierWebhookSettings = ({
                 <FormLabel>URL do Webhook do Zapier</FormLabel>
                 <FormControl>
                   <Input 
-                    placeholder="Cole a URL do webhook do Zapier aqui" 
+                    placeholder="https://hooks.zapier.com/hooks/catch/22657275/2p3dg0d/" 
                     {...field}
                   />
                 </FormControl>
