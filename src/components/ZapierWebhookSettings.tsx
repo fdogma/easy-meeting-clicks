@@ -49,20 +49,17 @@ export const ZapierWebhookSettings = ({
   });
 
   useEffect(() => {
-    // Garantir que o formulário use o valor inicial correto
     if (initialValue) {
       form.reset({ webhookUrl: initialValue });
     }
   }, [initialValue, form]);
 
   const onSubmit = ({ webhookUrl }: z.infer<typeof formSchema>) => {
-    // Salvar no localStorage para persistir a URL
     localStorage.setItem('zapierWebhookUrl', webhookUrl);
     onSave(webhookUrl);
-    toast({ title: "Webhook configurado", description: "URL salva!" });
+    toast({ title: "Webhook configurado", description: "URL salva com sucesso!" });
   };
 
-  /** Dispara teste para o Zapier */
   const handleTestWebhook = async () => {
     const webhookUrl = form.getValues("webhookUrl");
     if (!webhookUrl) {
@@ -77,44 +74,45 @@ export const ZapierWebhookSettings = ({
     setTestLoading(true);
     console.log("Testando webhook:", webhookUrl);
     
-    // Criar dados de teste com formato compatível com Google Calendar
     const testDate = new Date();
     const startDateTime = testDate.toISOString();
     const endDateTime = new Date(testDate.getTime() + 60 * 60 * 1000).toISOString();
     
     try {
-      const res = await fetch(webhookUrl, {
+      await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        mode: "no-cors", // Necessário para evitar erros de CORS
+        mode: "no-cors", 
         body: JSON.stringify({
-          // Dados de teste formatados exatamente como o Google Calendar espera
-          name: "Usuário de Teste",
-          title: "Reunião de Teste", 
-          start_datetime: startDateTime,
-          end_datetime: endDateTime,
-          location: "",
+          summary: "Reunião de Teste do Webhook",
+          start: {
+            dateTime: startDateTime
+          },
+          end: {
+            dateTime: endDateTime
+          },
+          attendees: [{ email: "teste@exemplo.com", name: "Usuário de Teste" }],
           description: "Este é um teste de integração com o Zapier",
           
-          // Campos de backup em diferentes formatos para maior compatibilidade
-          summary: "Reunião de Teste",
-          start: startDateTime,
-          end: endDateTime,
+          // Campos adicionais para compatibilidade
+          start_datetime: startDateTime,
+          end_datetime: endDateTime,
+          name: "Usuário de Teste",
+          title: "Reunião de Teste do Webhook",
+          location: "Online",
           
-          // Campos adicionais para debug
+          // Campos para debug
           test: true,
           timestamp: new Date().toISOString(),
-          message: "Webhook de teste disparado via app",
-          display_date: "01/01/2025",
-          display_time: "10:00",
+          message: "Este é um teste de webhook",
+          display_date: format(testDate, "dd/MM/yyyy"),
+          display_time: format(testDate, "HH:mm"),
           client_name: "Usuário de Teste"
         }),
       });
       
-      // Como estamos usando mode: "no-cors", não podemos verificar o status da resposta
-      // Então vamos apenas mostrar uma mensagem de sucesso
       toast({
-        title: "Teste enviado",
+        title: "Teste enviado com sucesso",
         description: "Verifique o 'Task History' no Zapier para confirmar.",
       });
     } catch (err: any) {

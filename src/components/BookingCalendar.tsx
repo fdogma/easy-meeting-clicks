@@ -85,11 +85,11 @@ const BookingCalendar = () => {
     setIsAdminMode(false);
   };
 
-  const formatDateTimeForZapier = (date: Date, timeString: string) => {
+  const createDateTime = (baseDate: Date, timeString: string): Date => {
     const [hours, minutes] = timeString.split(':').map(Number);
-    const dateTime = new Date(date);
-    dateTime.setHours(hours, minutes, 0, 0);
-    return dateTime.toISOString();
+    const result = new Date(baseDate);
+    result.setHours(hours, minutes, 0, 0);
+    return result;
   };
 
   const handleSubmit = async () => {
@@ -104,41 +104,61 @@ const BookingCalendar = () => {
 
     setIsSubmitting(true);
     
-    const startDateTime = formatDateTimeForZapier(date, selectedTime);
-    const endDateTime = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000).toISOString();
+    const startDate = createDateTime(date, selectedTime);
+    const endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+    
+    const startDateTime = startDate.toISOString();
+    const endDateTime = endDate.toISOString();
     
     const formattedDate = format(date, "dd/MM/yyyy");
     
+    console.log("Preparando dados para envio ao Zapier:");
+    console.log("- Data selecionada:", formattedDate);
+    console.log("- Horário selecionado:", selectedTime);
+    console.log("- Nome:", name);
+    console.log("- Start datetime (ISO):", startDateTime);
+    console.log("- End datetime (ISO):", endDateTime);
+    
     const bookingData = {
-      name: name,
-      title: `Reunião com ${name}`,
-      start_datetime: startDateTime,
-      end_datetime: endDateTime,
-      location: "",
+      summary: `Reunião com ${name}`,
+      start: {
+        dateTime: startDateTime
+      },
+      end: {
+        dateTime: endDateTime
+      },
+      attendees: [{ email: "cliente@exemplo.com", name: name }],
       description: `Agendamento realizado pelo site para ${formattedDate} às ${selectedTime}`,
       
-      summary: `Reunião com ${name}`,
-      start: startDateTime,
-      end: endDateTime,
+      start_datetime: startDateTime,
+      end_datetime: endDateTime,
+      name: name,
+      title: `Reunião com ${name}`,
+      location: "",
       
       display_date: formattedDate,
       display_time: selectedTime,
       client_name: name,
-      message: `Agendamento para ${formattedDate} às ${selectedTime}`
+      message: `Agendamento para ${formattedDate} às ${selectedTime}`,
+      timestamp: new Date().toISOString()
     };
 
     try {
-      const webhookToUse = webhookUrl || DEFAULT_WEBHOOK_URL;
+      const webhookTarget = webhookUrl || DEFAULT_WEBHOOK_URL;
       
-      console.log("Enviando dados para webhook:", webhookToUse);
-      console.log("Dados do agendamento:", bookingData);
+      console.log("Enviando dados para webhook:", webhookTarget);
+      console.log("Dados completos do agendamento:", JSON.stringify(bookingData, null, 2));
       
-      const response = await fetch(webhookToUse, {
+      await fetch(webhookTarget, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json"
+        },
         mode: "no-cors",
         body: JSON.stringify(bookingData),
       });
+      
+      console.log("Requisição enviada com sucesso");
 
       const newBooking = {
         date: format(date, "yyyy-MM-dd"),
@@ -146,7 +166,7 @@ const BookingCalendar = () => {
         name: name
       };
       
-      setBookings((prevBookings) => [...prevBookings, newBooking]);
+      setBookings(prev => [...prev, newBooking]);
 
       toast({
         title: "Agendamento realizado!",
@@ -161,7 +181,7 @@ const BookingCalendar = () => {
       console.error("Erro ao enviar agendamento:", error);
       toast({
         title: "Erro no agendamento",
-        description: "Por favor, tente novamente mais tarde.",
+        description: "Não foi possível realizar o agendamento. Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {
